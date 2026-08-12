@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trilha da Lógica — SENAI Alagoinhas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sky-top:#dff6f0;
+    --sky-bottom:#c9ecec;
+    --teal:#1f9e94;
+    --teal-dark:#0f7b73;
+    --sun:#ffb84d;
+    --coral:#ff8a65;
+    --card-yellow:#ffe9a8;
+    --card-yellow-border:#f4c95d;
+    --card-pink:#ffd9e0;
+    --card-pink-border:#f3a9b8;
+    --card-purple:#7c5cff;
+    --ink:#1e3a3a;
+    --paper:#fffdf7;
+    --shadow:0 8px 20px rgba(15,80,75,0.18);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Nunito',sans-serif;
+    color:var(--ink);
+    background:linear-gradient(180deg,var(--sky-top) 0%, var(--sky-bottom) 100%);
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+  h1,h2,h3,.display{font-family:'Baloo 2',cursive;}
+
+  /* decorative sky */
+  .sky-deco{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+  .cloud{position:absolute;opacity:0.55;filter:drop-shadow(0 4px 6px rgba(0,0,0,0.03));}
+  .bird{position:absolute;font-size:14px;opacity:0.35;color:#5a7a78;}
+
+  .wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:28px 20px 60px;}
+
+  header.top{text-align:center;margin-bottom:22px;}
+  header.top .eyebrow{
+    display:inline-block;background:var(--teal);color:#fff;padding:4px 14px;border-radius:999px;
+    font-weight:700;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px;
+  }
+  header.top h1{font-size:clamp(28px,4vw,44px);margin:0 0 6px;color:var(--teal-dark);}
+  header.top p{margin:0;color:#3f6360;font-weight:600;}
+
+  /* SETUP SCREEN */
+  .setup-card{
+    max-width:520px;margin:30px auto;background:var(--paper);border-radius:22px;padding:30px 28px;
+    box-shadow:var(--shadow); border:2px solid #fff;
+  }
+  .setup-card h2{margin-top:0;color:var(--teal-dark);}
+  .player-row{display:flex;gap:10px;align-items:center;margin-bottom:10px;}
+  .player-row .dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;}
+  .player-row input{
+    flex:1;padding:10px 12px;border-radius:10px;border:2px solid #dfe9e7;font-family:'Nunito';font-weight:700;
+    font-size:15px;outline:none;
+  }
+  .player-row input:focus{border-color:var(--teal);}
+  .count-toggle{display:flex;gap:6px;margin:14px 0 4px;}
+  .count-toggle button{
+    flex:1;padding:10px 0;border-radius:12px;border:2px solid #dfe9e7;background:#fff;font-weight:800;
+    font-family:'Baloo 2';font-size:17px;cursor:pointer;color:var(--teal-dark);transition:.15s;
+  }
+  .count-toggle button:hover{border-color:var(--teal);}
+  .count-toggle button.active{background:var(--teal);color:#fff;border-color:var(--teal-dark);}
+  .count-label{margin:0 0 16px;font-size:12px;font-weight:700;color:#6f908d;text-align:center;text-transform:uppercase;letter-spacing:.04em;}
+  .primary-btn{
+    width:100%;padding:14px;border:none;border-radius:14px;background:var(--coral);color:#fff;
+    font-family:'Baloo 2';font-size:18px;font-weight:700;cursor:pointer;box-shadow:0 6px 0 #d9603f;
+    transition:transform .08s;
+  }
+  .primary-btn:active{transform:translateY(4px);box-shadow:0 2px 0 #d9603f;}
+  .primary-btn:disabled{opacity:.5;cursor:not-allowed;box-shadow:none;}
+
+  /* GAME LAYOUT */
+  .game-layout{display:grid;grid-template-columns:1fr 260px;gap:22px;align-items:start;}
+  @media (max-width:880px){.game-layout{grid-template-columns:1fr;}}
+
+  .board-panel{
+    background:linear-gradient(180deg,#eafcf6,#d7f2ea);
+    border-radius:24px;padding:20px;box-shadow:var(--shadow);border:2px solid #fff;position:relative;
+  }
+  .legend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;font-size:12px;font-weight:700;color:#3f6360;}
+  .legend span{display:inline-flex;align-items:center;gap:5px;}
+  .legend i{width:12px;height:12px;border-radius:4px;display:inline-block;}
+
+  .board-grid{
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:8px;
+  }
+  .cell{
+    position:relative;border-radius:12px;padding:8px 6px;min-height:78px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+    font-size:11px;font-weight:700;line-height:1.25;border:2px solid transparent;
+    box-shadow:0 3px 0 rgba(0,0,0,0.06);
+  }
+  .cell .idx{position:absolute;top:3px;left:6px;font-size:9px;opacity:.45;font-weight:800;}
+  .cell.question{background:var(--card-yellow);border-color:var(--card-yellow-border);color:#7a5b12;}
+  .cell.challenge{background:#fdeee0;border-color:#f3c79b;color:#8a4b12;}
+  .cell.forward{background:#e3f3ff;border-color:#a9d6f5;color:#1b5d8a;}
+  .cell.back{background:var(--card-pink);border-color:var(--card-pink-border);color:#8a2f45;}
+  .cell.restart{background:var(--coral);border-color:#d9603f;color:#fff;}
+  .cell.bonus{background:#e6f9d9;border-color:#b5e79a;color:#3c6b22;}
+  .cell.start{background:var(--teal);border-color:var(--teal-dark);color:#fff;}
+  .cell.finish{background:#7c5cff;border-color:#5c3fd6;color:#fff;}
+  .cell .icon{font-size:18px;margin-bottom:2px;}
+
+  .tokens-on-cell{position:absolute;bottom:3px;right:3px;display:flex;gap:2px;}
+  .token{
+    width:16px;height:16px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,0.35);
+    display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:800;
+    transition:transform .3s;
+  }
+
+  /* SIDEBAR */
+  .sidebar{display:flex;flex-direction:column;gap:16px;}
+  .panel{background:var(--paper);border-radius:18px;padding:16px 18px;box-shadow:var(--shadow);border:2px solid #fff;}
+  .panel h3{margin:0 0 10px;color:var(--teal-dark);font-size:16px;}
+  .player-card{
+    display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;margin-bottom:6px;
+    background:#f3f8f6;font-weight:700;font-size:14px;transition:.2s;
+  }
+  .player-card.active{background:#dff6ee;box-shadow:inset 0 0 0 2px var(--teal);}
+  .player-card .pdot{width:14px;height:14px;border-radius:50%;flex-shrink:0;}
+  .player-card .pname{flex:1;}
+  .player-card .pscore{font-family:'Baloo 2';color:var(--teal-dark);}
+
+  .dice-area{text-align:center;}
+  .dice{
+    width:64px;height:64px;margin:0 auto 12px;background:#fff;border-radius:14px;
+    display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:900;
+    box-shadow:0 4px 0 #cfd9d7,inset 0 0 0 2px #eef3f2;color:var(--teal-dark);
+    font-family:'Baloo 2';
+  }
+  .dice.rolling{animation:shake .5s;}
+  @keyframes shake{
+    0%,100%{transform:rotate(0deg);}
+    25%{transform:rotate(-12deg);}
+    75%{transform:rotate(12deg);}
+  }
+  .turn-msg{font-size:13px;font-weight:700;color:#3f6360;margin-bottom:10px;min-height:18px;}
+
+  /* MODAL */
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(10,40,38,0.55);display:flex;align-items:center;justify-content:center;
+    z-index:50;padding:20px;
+  }
+  .modal{
+    background:var(--paper);border-radius:22px;max-width:460px;width:100%;padding:26px;box-shadow:0 20px 50px rgba(0,0,0,0.35);
+    animation:pop .25s ease;
+  }
+  @keyframes pop{from{transform:scale(.85);opacity:0;}to{transform:scale(1);opacity:1;}}
+  .modal .tag{
+    display:inline-block;font-size:11px;font-weight:800;padding:3px 10px;border-radius:999px;margin-bottom:10px;
+    text-transform:uppercase;letter-spacing:.05em;
+  }
+  .tag.question{background:var(--card-yellow);color:#7a5b12;}
+  .tag.challenge{background:#fdeee0;color:#8a4b12;}
+  .tag.event{background:#e3f3ff;color:#1b5d8a;}
+  .modal h3{margin:0 0 14px;font-size:19px;line-height:1.35;}
+  .options{display:flex;flex-direction:column;gap:9px;margin-bottom:6px;}
+  .opt-btn{
+    text-align:left;padding:11px 14px;border-radius:12px;border:2px solid #e3ece9;background:#fff;
+    font-family:'Nunito';font-weight:700;font-size:14px;cursor:pointer;transition:.15s;color:var(--ink);
+  }
+  .opt-btn:hover{border-color:var(--teal);}
+  .opt-btn.correct{background:#dff5df;border-color:#57b45b;color:#215023;}
+  .opt-btn.wrong{background:#fbe1e1;border-color:#e06060;color:#7a2020;}
+  .opt-btn:disabled{cursor:default;}
+  .feedback{font-size:13px;font-weight:700;margin:10px 0 4px;min-height:18px;}
+  .feedback.good{color:#2b7a2f;}
+  .feedback.bad{color:#b93b3b;}
+  .modal-actions{display:flex;justify-content:flex-end;margin-top:14px;}
+  .modal-actions button{
+    padding:10px 22px;border:none;border-radius:12px;background:var(--teal);color:#fff;font-weight:800;
+    font-family:'Baloo 2';font-size:15px;cursor:pointer;box-shadow:0 5px 0 var(--teal-dark);
+  }
+  .modal-actions button:active{transform:translateY(3px);box-shadow:0 2px 0 var(--teal-dark);}
+
+  .win-screen{text-align:center;}
+  .win-screen .trophy{font-size:56px;}
+  .win-screen h2{color:var(--teal-dark);margin:6px 0;}
+  .rank-row{display:flex;justify-content:space-between;padding:8px 14px;background:#f3f8f6;border-radius:10px;margin-bottom:6px;font-weight:700;}
+
+  .hidden{display:none !important;}
+</style>
+</head>
+<body>
+
+<div class="sky-deco" id="skyDeco"></div>
+
+<div class="wrap">
+  <header class="top">
+    <span class="eyebrow">SENAI Alagoinhas · Lógica de Programação</span>
+    <h1>🧭 Trilha da Lógica</h1>
+    <p>Role o dado, avance pela trilha e responda às perguntas para vencer!</p>
+  </header>
+
+  <!-- SETUP SCREEN -->
+  <div class="setup-card" id="setupScreen">
+    <h2>Quem vai jogar?</h2>
+    <div class="count-toggle" id="countToggle">
+      <button data-n="1">1</button>
+      <button data-n="2" class="active">2</button>
+      <button data-n="3">3</button>
+      <button data-n="4">4</button>
+      <button data-n="5">5</button>
+      <button data-n="6">6</button>
+    </div>
+    <p class="count-label">Quantidade de jogadores</p>
+    <div id="playerInputs"></div>
+    <button class="primary-btn" id="startBtn" style="margin-top:14px;">Começar a trilha 🚀</button>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div class="game-layout hidden" id="gameScreen">
+    <div class="board-panel">
+      <div class="legend">
+        <span><i style="background:var(--card-yellow)"></i>Pergunta</span>
+        <span><i style="background:#fdeee0"></i>Carta desafio</span>
+        <span><i style="background:#e3f3ff"></i>Avance</span>
+        <span><i style="background:var(--card-pink)"></i>Volte</span>
+        <span><i style="background:var(--coral)"></i>Volta ao início</span>
+        <span><i style="background:#e6f9d9"></i>Bônus</span>
+      </div>
+      <div class="board-grid" id="boardGrid"></div>
+    </div>
+
+    <div class="sidebar">
+      <div class="panel dice-area">
+        <h3>🎲 Dado</h3>
+        <div class="dice" id="dice">–</div>
+        <div class="turn-msg" id="turnMsg">Vez de jogar</div>
+        <button class="primary-btn" id="rollBtn">Rolar o dado</button>
+      </div>
+      <div class="panel">
+        <h3>🏁 Jogadores</h3>
+        <div id="playersList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay hidden" id="modalOverlay">
+  <div class="modal" id="modalBody"></div>
+</div>
+
+<script>
+/* ---------------- DECORATIVE SKY ---------------- */
+const skyDeco = document.getElementById('skyDeco');
+function cloudSVG(w){
+  return `<svg width="${w}" height="${w*0.5}" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="60" cy="60" rx="55" ry="30" fill="#ffffff"/>
+    <ellipse cx="110" cy="45" rx="45" ry="35" fill="#ffffff"/>
+    <ellipse cx="150" cy="65" rx="40" ry="25" fill="#ffffff"/>
+  </svg>`;
+}
+const cloudSpots = [
+  {top:'4%',left:'2%',w:180},{top:'2%',left:'70%',w:150},{top:'55%',left:'85%',w:130},
+  {top:'70%',left:'5%',w:140},{top:'30%',left:'45%',w:110}
+];
+cloudSpots.forEach(c=>{
+  const d=document.createElement('div');
+  d.className='cloud'; d.style.top=c.top; d.style.left=c.left; d.innerHTML=cloudSVG(c.w);
+  skyDeco.appendChild(d);
+});
+for(let i=0;i<10;i++){
+  const b=document.createElement('div');
+  b.className='bird'; b.textContent='˅';
+  b.style.top=(Math.random()*40+5)+'%'; b.style.left=(Math.random()*90+2)+'%';
+  b.style.fontSize=(10+Math.random()*10)+'px';
+  skyDeco.appendChild(b);
+}
+
+/* ---------------- GAME DATA ---------------- */
+const CELL_TYPES = {
+  start:   {icon:'🚩', label:'Início'},
+  question:{icon:'🔍', label:'Pergunta'},
+  challenge:{icon:'🃏', label:'Carta desafio'},
+  forward: {icon:'✈️', label:'Avance 2 casas'},
+  back:    {icon:'🌀', label:'Volte 1 casa'},
+  restart: {icon:'⛔', label:'Volte ao início'},
+  bonus:   {icon:'⭐', label:'Bônus +2 pontos'},
+  finish:  {icon:'🏆', label:'Fim'},
+};
+
+// 36-cell snake path
+const BOARD = [
+  'start','question','question','challenge','forward','question',
+  'challenge','bonus','question','forward','challenge','question',
+  'question','challenge','back','bonus','question','challenge',
+  'question','restart','challenge','question','challenge','question',
+  'back','question','challenge','forward','bonus','question',
+  'challenge','question','challenge','question','challenge','finish'
+];
+
+const QUESTIONS = [
+  {q:'O que é um algoritmo?', opts:['Uma sequência finita e ordenada de passos para resolver um problema','Um tipo de linguagem de programação','Um erro no código','Um tipo de hardware'], correct:0},
+  {q:'Por que a ordem das instruções importa em um algoritmo?', opts:['Não importa, o computador entende de qualquer jeito','Porque o computador executa passo a passo, e trocar a ordem pode mudar o resultado','Só importa em jogos','Importa apenas em linguagens visuais'], correct:1},
+  {q:'O que é decomposição de problemas?', opts:['Excluir partes do problema','Dividir um problema grande em partes menores e mais simples','Copiar a solução de outra pessoa','Executar o programa várias vezes'], correct:1},
+  {q:'O que pode acontecer se uma instrução for vaga ou ambígua?', opts:['O algoritmo sempre funciona perfeitamente','O computador pode interpretar de forma errada ou não conseguir executar','Ela deixa o código mais rápido','Nada, instruções vagas são recomendadas'], correct:1},
+  {q:'Qual NÃO é uma forma comum de representar um algoritmo?', opts:['Pseudocódigo','Fluxograma','Linguagem natural passo a passo','Cor da tela do computador'], correct:3},
+  {q:'O que é uma estrutura sequencial em lógica de programação?', opts:['Instruções executadas uma após a outra, na ordem em que aparecem','Instruções que se repetem infinitamente','Um tipo de variável','Um erro de sintaxe'], correct:0},
+  {q:'O que é uma variável em programação?', opts:['Um espaço na memória usado para guardar um valor que pode mudar','Um comando que imprime na tela','Um tipo de laço de repetição','Um símbolo matemático fixo'], correct:0},
+  {q:'O que é lógica de programação?', opts:['A forma de organizar o raciocínio para resolver problemas e criar algoritmos','Um software de desenho','Um tipo de hardware de rede','A tradução de um idioma para outro'], correct:0},
+  {q:'Em um fluxograma, qual forma geralmente representa uma decisão (sim/não)?', opts:['Retângulo','Losango (diamante)','Círculo','Seta'], correct:1},
+  {q:'O que é uma estrutura de repetição (loop)?', opts:['Um bloco de instruções executado apenas uma vez','Um conjunto de instruções repetidas enquanto uma condição for verdadeira','Um comando para apagar variáveis','Um tipo de comentário no código'], correct:1},
+  {q:'O que significa "depurar" (debugar) um algoritmo?', opts:['Deixar o código mais bonito','Encontrar e corrigir erros no algoritmo ou programa','Apagar todo o código','Traduzir o código para outra linguagem'], correct:1},
+  {q:'Qual é a função de um teste de mesa em lógica de programação?', opts:['Decorar a apresentação do projeto','Simular manualmente a execução do algoritmo para verificar se ele funciona','Testar a resistência da mesa','Substituir o computador'], correct:1},
+  {q:'O que é uma condicional (if/senão) usada para?', opts:['Repetir um bloco de código várias vezes','Tomar decisões, executando caminhos diferentes conforme uma condição','Armazenar dados permanentemente','Definir o nome do programa'], correct:1},
+  {q:'Qual destas é uma boa prática ao escrever algoritmos?', opts:['Usar nomes de variáveis sem sentido','Escrever passos claros, específicos e na ordem correta','Misturar vários problemas em um único passo','Evitar testar o algoritmo'], correct:1},
+  {q:'O que aprendemos ao revisar algoritmos de aulas anteriores?', opts:['Que cada aula é isolada e não se conecta com as outras','Que conceitos se conectam: sequência, decisão e repetição formam a base da lógica','Que algoritmos não precisam ser revisados','Que só existe uma forma certa de resolver qualquer problema'], correct:1},
+];
+
+const CHALLENGES = [
+  {text:'Cite mentalmente 3 exemplos de algoritmos do dia a dia (ex: receita de bolo, tutorial de troca de pneu). Conseguiu? Ganhe +5 pontos!', points:5},
+  {text:'Em voz alta, explique para o grupo a diferença entre um algoritmo e um programa. Ganhe +5 pontos!', points:5},
+  {text:'Desafio relâmpago: cite uma linguagem de programação que você conhece. Ganhe +3 pontos!', points:3},
+  {text:'Explique com suas palavras o que é uma "condição" em um algoritmo. Ganhe +5 pontos!', points:5},
+  {text:'Carta sorte: você impressionou a NEXUS com sua lógica! Ganhe +8 pontos bônus.', points:8},
+  {text:'Desafio: monte de cabeça os passos de "como fazer um sanduíche" — pelo menos 5 passos. Ganhe +5 pontos!', points:5},
+  {text:'Cite um exemplo de estrutura de repetição do cotidiano (ex: escovar cada dente). Ganhe +4 pontos!', points:4},
+  {text:'Carta desafio: explique por que testar um algoritmo antes de programá-lo é importante. Ganhe +6 pontos!', points:6},
+  {text:'Relâmpago: qual símbolo de fluxograma representa início/fim? Se souber, ganhe +3 pontos!', points:3},
+  {text:'Carta bônus: você ajudou um colega a entender decomposição de problemas. Ganhe +7 pontos!', points:7},
+];
+
+const PLAYER_COLORS = ['#ff6f61','#3aa0ff','#ffb020','#8a5cf6','#2bb673','#ff5fa2'];
+
+/* ---------------- STATE ---------------- */
+let players = [];
+let currentPlayer = 0;
+let gameOver = false;
+
+/* ---------------- SETUP SCREEN LOGIC ---------------- */
+const countToggle = document.getElementById('countToggle');
+const playerInputs = document.getElementById('playerInputs');
+let numPlayers = 2; // matches the button with class "active" above
+
+function renderPlayerInputs(){
+  playerInputs.innerHTML='';
+  for(let i=0;i<numPlayers;i++){
+    const row=document.createElement('div');
+    row.className='player-row';
+    row.innerHTML=`<span class="dot" style="background:${PLAYER_COLORS[i]}"></span>
+      <input type="text" maxlength="16" placeholder="Nome do jogador ${i+1}" id="pname${i}">`;
+    playerInputs.appendChild(row);
+  }
+}
+renderPlayerInputs();
+
+countToggle.addEventListener('click', e=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  countToggle.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  numPlayers = parseInt(btn.dataset.n);
+  renderPlayerInputs();
+});
+
+document.getElementById('startBtn').addEventListener('click', ()=>{
+  players = [];
+  for(let i=0;i<numPlayers;i++){
+    const val = document.getElementById('pname'+i).value.trim();
+    players.push({
+      name: val || `Jogador ${i+1}`,
+      color: PLAYER_COLORS[i],
+      pos: 0,
+      score: 0,
+      finished:false
+    });
+  }
+  document.getElementById('setupScreen').classList.add('hidden');
+  document.getElementById('gameScreen').classList.remove('hidden');
+  buildBoard();
+  renderAll();
+});
+
+/* ---------------- BOARD RENDER ---------------- */
+const boardGrid = document.getElementById('boardGrid');
+
+function buildBoard(){
+  boardGrid.innerHTML='';
+  BOARD.forEach((type, idx)=>{
+    const info = CELL_TYPES[type];
+    const cell=document.createElement('div');
+    cell.className='cell '+type;
+    cell.id='cell-'+idx;
+    cell.innerHTML=`<span class="idx">${idx+1}</span><span class="icon">${info.icon}</span><span>${info.label}</span>
+      <div class="tokens-on-cell" id="tokens-${idx}"></div>`;
+    boardGrid.appendChild(cell);
+  });
+}
+
+function renderTokens(){
+  BOARD.forEach((_,idx)=>{
+    document.getElementById('tokens-'+idx).innerHTML='';
+  });
+  players.forEach((p,i)=>{
+    const holder = document.getElementById('tokens-'+p.pos);
+    if(!holder) return;
+    const t=document.createElement('div');
+    t.className='token';
+    t.style.background=p.color;
+    t.textContent=i+1;
+    holder.appendChild(t);
+  });
+}
+
+function renderPlayersList(){
+  const list=document.getElementById('playersList');
+  list.innerHTML='';
+  players.forEach((p,i)=>{
+    const row=document.createElement('div');
+    row.className='player-card'+(i===currentPlayer && !gameOver ? ' active':'');
+    row.innerHTML=`<span class="pdot" style="background:${p.color}"></span>
+      <span class="pname">${p.name}${p.finished?' 🏁':''}</span>
+      <span class="pscore">${p.score} pts</span>`;
+    list.appendChild(row);
+  });
+}
+
+function renderAll(){
+  renderTokens();
+  renderPlayersList();
+  updateTurnMsg();
+}
+
+function updateTurnMsg(){
+  const msg=document.getElementById('turnMsg');
+  if(gameOver){ msg.textContent='Jogo encerrado 🎉'; return; }
+  msg.textContent = `Vez de ${players[currentPlayer].name}`;
+}
+
+/* ---------------- DICE + TURN LOGIC ---------------- */
+const diceEl = document.getElementById('dice');
+const rollBtn = document.getElementById('rollBtn');
+
+rollBtn.addEventListener('click', handleRoll);
+
+function handleRoll(){
+  if(gameOver) return;
+  rollBtn.disabled = true;
+  diceEl.classList.add('rolling');
+  let ticks = 0;
+  const spin = setInterval(()=>{
+    diceEl.textContent = 1+Math.floor(Math.random()*6);
+    ticks++;
+    if(ticks>8){
+      clearInterval(spin);
+      diceEl.classList.remove('rolling');
+      const roll = 1+Math.floor(Math.random()*6);
+      diceEl.textContent = roll;
+      movePlayer(roll);
+    }
+  },80);
+}
+
+function movePlayer(steps){
+  const p = players[currentPlayer];
+  let target = p.pos + steps;
+  if(target >= BOARD.length-1) target = BOARD.length-1;
+  animateMove(p, target, ()=>{
+    resolveCell(p);
+  });
+}
+
+function animateMove(p, target, cb){
+  const step = ()=>{
+    if(p.pos < target){
+      p.pos++;
+      renderTokens();
+      setTimeout(step, 160);
+    } else {
+      cb();
+    }
+  };
+  step();
+}
+
+function resolveCell(p){
+  const type = BOARD[p.pos];
+  renderAll();
+  switch(type){
+    case 'question': showQuestion(p); break;
+    case 'challenge': showChallenge(p); break;
+    case 'forward': showEvent(p, 'Você avança 2 casas! ✈️', 2, ()=>endEventMove(p,2)); break;
+    case 'back': showEvent(p, 'Ops! Volte 1 casa. 🌀', -1, ()=>endEventMove(p,-1)); break;
+    case 'restart': showEvent(p, 'A NEXUS interferiu no seu código! Volte ao início. ⛔', 'restart', ()=>endEventRestart(p)); break;
+    case 'bonus': p.score += 2; showEvent(p, 'Casa bônus! +2 pontos ⭐', null, ()=>finishTurn()); break;
+    case 'start': finishTurn(); break;
+    case 'finish': showWin(p); break;
+    default: finishTurn();
+  }
+}
+
+function endEventMove(p, delta){
+  let t = p.pos + delta;
+  t = Math.max(0, Math.min(t, BOARD.length-1));
+  animateMove(p, t, ()=>{
+    // avoid infinite chain triggers on simple move cells
+    renderAll();
+    if(BOARD[p.pos]==='finish'){ showWin(p); return; }
+    finishTurn();
+  });
+}
+function endEventRestart(p){
+  p.pos = 0;
+  renderTokens();
+  finishTurn();
+}
+
+function finishTurn(){
+  closeModal();
+  renderAll();
+  if(gameOver) return;
+  nextPlayer();
+}
+
+function nextPlayer(){
+  do{
+    currentPlayer = (currentPlayer+1) % players.length;
+  } while(players[currentPlayer].finished && players.some(p=>!p.finished));
+  renderPlayersList();
+  updateTurnMsg();
+  rollBtn.disabled = false;
+}
+
+/* ---------------- MODALS ---------------- */
+const overlay = document.getElementById('modalOverlay');
+const modalBody = document.getElementById('modalBody');
+
+function openModal(html){
+  modalBody.innerHTML = html;
+  overlay.classList.remove('hidden');
+}
+function closeModal(){
+  overlay.classList.add('hidden');
+  modalBody.innerHTML='';
+}
+
+let usedQuestions = [];
+function pickQuestion(){
+  if(usedQuestions.length >= QUESTIONS.length) usedQuestions = [];
+  let idx;
+  do{ idx = Math.floor(Math.random()*QUESTIONS.length); } while(usedQuestions.includes(idx));
+  usedQuestions.push(idx);
+  return QUESTIONS[idx];
+}
+let usedChallenges = [];
+function pickChallenge(){
+  if(usedChallenges.length >= CHALLENGES.length) usedChallenges = [];
+  let idx;
+  do{ idx = Math.floor(Math.random()*CHALLENGES.length); } while(usedChallenges.includes(idx));
+  usedChallenges.push(idx);
+  return CHALLENGES[idx];
+}
+
+function showQuestion(p){
+  const item = pickQuestion();
+  const optsHtml = item.opts.map((o,i)=>`<button class="opt-btn" data-i="${i}">${o}</button>`).join('');
+  openModal(`
+    <span class="tag question">Pergunta · ${p.name}</span>
+    <h3>${item.q}</h3>
+    <div class="options">${optsHtml}</div>
+    <div class="feedback" id="fb"></div>
+    <div class="modal-actions"><button id="nextBtn" style="display:none;">Continuar</button></div>
+  `);
+  const btns = modalBody.querySelectorAll('.opt-btn');
+  btns.forEach(b=>{
+    b.addEventListener('click', ()=>{
+      btns.forEach(x=>x.disabled=true);
+      const chosen = parseInt(b.dataset.i);
+      const fb = document.getElementById('fb');
+      if(chosen === item.correct){
+        b.classList.add('correct');
+        fb.textContent = 'Certa resposta! +10 pontos 🎉';
+        fb.className='feedback good';
+        p.score += 10;
+      } else {
+        b.classList.add('wrong');
+        btns[item.correct].classList.add('correct');
+        fb.textContent = 'Não foi dessa vez — mas siga em frente!';
+        fb.className='feedback bad';
+      }
+      renderPlayersList();
+      document.getElementById('nextBtn').style.display='inline-block';
+    });
+  });
+  document.getElementById('nextBtn').addEventListener('click', ()=>{
+    if(BOARD[p.pos]==='finish'){ showWin(p); return; }
+    finishTurn();
+  });
+}
+
+function showChallenge(p){
+  const item = pickChallenge();
+  openModal(`
+    <span class="tag challenge">Carta desafio · ${p.name}</span>
+    <h3>${item.text}</h3>
+    <div class="modal-actions"><button id="claimBtn">Resgatar pontos</button></div>
+  `);
+  document.getElementById('claimBtn').addEventListener('click', ()=>{
+    p.score += item.points;
+    renderPlayersList();
+    if(BOARD[p.pos]==='finish'){ showWin(p); return; }
+    finishTurn();
+  });
+}
+
+function showEvent(p, text, delta, onContinue){
+  openModal(`
+    <span class="tag event">Evento · ${p.name}</span>
+    <h3>${text}</h3>
+    <div class="modal-actions"><button id="evBtn">Continuar</button></div>
+  `);
+  document.getElementById('evBtn').addEventListener('click', onContinue);
+}
+
+function showWin(p){
+  p.finished = true;
+  const stillPlaying = players.some(pl=>!pl.finished);
+  const ranking = [...players].sort((a,b)=>b.score-a.score);
+  const rankHtml = ranking.map((pl,i)=>`<div class="rank-row"><span>${i+1}. ${pl.name}${pl.finished?' 🏁':''}</span><span>${pl.score} pts</span></div>`).join('');
+
+  if(!stillPlaying){ gameOver = true; }
+
+  openModal(`
+    <div class="win-screen">
+      <div class="trophy">🏆</div>
+      <h2>${p.name} chegou ao fim da trilha!</h2>
+      <p style="font-weight:700;color:#3f6360;">${gameOver ? 'Todos terminaram — confira o placar final:' : 'Os outros jogadores continuam a trilha.'}</p>
+      ${rankHtml}
+      <div class="modal-actions" style="justify-content:center;margin-top:16px;">
+        <button id="okBtn">${gameOver ? 'Jogar novamente' : 'Continuar jogo'}</button>
+      </div>
+    </div>
+  `);
+  document.getElementById('okBtn').addEventListener('click', ()=>{
+    if(gameOver){
+      location.reload();
+    } else {
+      closeModal();
+      renderAll();
+      nextPlayer();
+    }
+  });
+}
+</script>
+</body>
+</html>
